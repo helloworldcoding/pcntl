@@ -1,0 +1,24 @@
+parent pid=16793 ppid=15303 
+parent pid=16793 ppid=15303 
+parent pid=16793 ppid=15303 
+child pid=16794 ppid=1 sleep 0+1
+child pid=16795 ppid=1 sleep 1+1
+child pid=16796 ppid=1 sleep 2+1
+child pid=16837 ppid=16836 sleep 0+1
+parent pid=16836 ppid=15303 
+child pid=16838 ppid=16836 sleep 1+1
+parent pid=16836 ppid=15303 
+child pid=16839 ppid=16836 sleep 2+1
+parent pid=16836 ppid=15303 
+parent pid=16871 ppid=15303 
+parent pid=16871 ppid=15303 
+parent pid=16871 ppid=15303 
+Array
+(
+    [0] => 16872
+    [1] => 16873
+    [2] => 16874
+)
+child pid=16872 ppid=1 sleep 0+1
+child pid=16873 ppid=1 sleep 1+1
+child pid=16874 ppid=1 sleep 2+1
