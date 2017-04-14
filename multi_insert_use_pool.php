@@ -6,8 +6,8 @@
  *
  */
 
-$total = 1000000;
-$num   = 5000;
+$total = 1000;
+$num   = 500;
 $per   = $total/$num;
 
 $poolSize  = 500; // 数据库连接池容量
@@ -28,9 +28,9 @@ $signal = sem_get($sem_id);
 // 初始化连接数量,开始的连接数为0
 shm_put_var($shm_id, SHARE_KEY,0);
 
-
 $begin  = microtime(true);
 echo 'start '.$begin.PHP_EOL;
+
 for($i = 1; $i<= $num; $i++) 
 {
 	$pid = pcntl_fork();
@@ -41,8 +41,7 @@ for($i = 1; $i<= $num; $i++)
 		//$id = pcntl_wait($status,WNOHANG);
 		$child[] = $pid;
 	} else if ($pid == 0) {
-		$finish = false;
-		while(1 && !$finish) {
+		while(true) {
 			// 获得信号量
 			sem_acquire($signal);
 			$count = shm_get_var($shm_id, SHARE_KEY);
@@ -64,9 +63,6 @@ for($i = 1; $i<= $num; $i++)
 						mysqli_query($link,$sql);
 					}
 					mysqli_close($link);
-					$finish = true;
-					$id = getmypid();
-					//echo 'count : '.$count.' child '.$id.' finished '.microtime(true).PHP_EOL;
 					break;
 				}
 				
@@ -78,24 +74,11 @@ for($i = 1; $i<= $num; $i++)
 		$count--;
 		shm_put_var($shm_id, SHARE_KEY, $count);
 		sem_release($signal);
-		echo 'count : '.$count++.' child '.$id.' finished '.microtime(true).PHP_EOL;
-		
-		exit(0);
-
-	/*
-		$link  = mysqli_connect('localhost','root','root','yii2advanced');
-		$start = ($i-1)*$per + 1;
-		$end   = $start + $per;
-		for($j = $start; $j< $end; $j++){
-			$time = microtime(true);
-			$sql = 'insert pcntl_test (rank,time) values ('.$j.','.$time.')';
-			mysqli_query($link,$sql);
-		}
-		mysqli_close($link);
 		$id = getmypid();
-		echo 'child '.$id.' finished '.microtime(true).PHP_EOL;
+		$count++;
+		echo 'count : '.$count.' child '.$id.' finished '.microtime(true).PHP_EOL;
 		exit(0);
-	 */
+	
 	}
 }
 
