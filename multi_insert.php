@@ -5,13 +5,14 @@
  */
 
 $total = 100000;
-$num   = 100;
+$num   = 1000;
 $per   = $total/$num;
 
 $sql  = '';
 $child = '';
 
-echo 'start '.microtime(true).PHP_EOL;
+$begin  = microtime(true);
+echo 'start '.$begin.PHP_EOL;
 for($i = 1; $i<= $num; $i++) 
 {
 	$pid = pcntl_fork();
@@ -45,4 +46,7 @@ while(count($child)){
 		}
 	}
 }
-echo 'end '.microtime(true).PHP_EOL;
+
+$end = microtime(true);
+echo 'end '.$end.PHP_EOL;
+echo 'fork '.$num.'process insert '.$total.' recodes takes '.($end-$begin).PHP_EOL;
