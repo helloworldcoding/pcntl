@@ -5,9 +5,8 @@
  * the child process and its main process
  */
 
-define("PC",10); // 进程个数
+define("PC",4); // 进程个数
 define("TO",4); // 超时
-define("TS",4); // 事件跨度，用于模拟任务延迟
 
 // 创建管道
 $pipe = "my_pipe".posix_getpid();
@@ -20,9 +19,11 @@ for($i = 0; $i < PC; $i++) {
 	$pid = pcntl_fork();
 	if ($pid == 0) {
 		// 子进程过程，写信息到管道
-		sleep(rand(1,TS));
+		sleep(rand(3,TO));
 		$handler = fopen($pipe,'w');
-		fwrite($handler,$i.PHP_EOL);// 当前任务完毕，在管道中写入数据
+		//fwrite($handler,$i.PHP_EOL);// 当前任务完毕，在管道中写入数据
+		$id = getmypid();
+		fwrite($handler,$id.':'.$i.'-');// 当前任务完毕，在管道中写入数据
 		fclose($handler);
 		exit(0); // 子进程执行完毕
 	}
@@ -30,24 +31,30 @@ for($i = 0; $i < PC; $i++) {
 
 // 父进程，读取管道数据
 $ph = fopen($pipe,'r');
-stream_set_blocking($ph,FALSE);// 将管道设为非堵塞，适用超时机制
+//stream_set_blocking($ph,FALSE);// 将管道设为非堵塞，适用超时机制
+stream_set_blocking($ph,true);// 将管道设为堵塞
 $data = ''; //存放管道中的数据
 $line = 0; // 行数
 $time = time();
 
 while ($line < PC && time() - $time < TO) {
+	echo 'line:'.$line.PHP_EOL;
 	$temp = fread($ph,1024);
 	if(empty($temp)) {
 		continue;
 	}
 
 	echo "current line : {$temp}".PHP_EOL;
-	$line = $line +  count(explode(PHP_EOL,$temp)) -1;
+	$line = $line +  count(explode(':',$temp)) - 1;
+	echo 'line '.$line.PHP_EOL;
 	$data .= $temp;
 }
 
+
 fclose($ph);
 
+unlink($pipe);
+echo 'data '.$data.PHP_EOL;
 // 等待子进程执行完毕，避免出现僵尸进程
 $n = 0;
 while ($n < PC) {
