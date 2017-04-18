@@ -3,23 +3,26 @@ class pipe
 {
 	protected $path = '';
 	protected $phandler;
+	protected $writehandler;
 
 	public function __construct($name='pipe', $path='/tmp', $cover=false, $mode = 0666 )
 	{
 		$path = rtrim($path,'/');
-		$fifoPath = $path.'/'.$name.getmypid();
+		$fifoPath = $path.'/'.$name.'.pipe';
 		if (file_exists($fifoPath)) {
 			if ($cover) {
 				unlink($fifoPath);
 			} else {
-				throw  new Exception($fifoPath.' exists already!'.PHP_EOL);
-			}
-		} else {
-			if (posix_mkfifo($fifoPath, $mode)) {
 				$this->path= $fifoPath;
-			} else {
-				throw  new Exception($fifoPath.' create failed!'.PHP_EOL);
+				return $fifoPath;
+				//throw  new Exception($fifoPath.' exists already!'.PHP_EOL);
 			}
+		}
+
+		if (posix_mkfifo($fifoPath, $mode)) {
+			$this->path= $fifoPath;
+		} else {
+			throw  new Exception($fifoPath.' create failed!'.PHP_EOL);
 		}
 	}
 
@@ -41,7 +44,7 @@ class pipe
 
 	public function readOpen($blocking=false)
 	{
-		$this->open('r');
+		$this->open('r', $blocking);
 		return $this;
 	}
 	public function writeOpen($blocking=false)
@@ -85,8 +88,13 @@ class pipe
 
 	public function close()
 	{
-		fclose($this->writehandler);
-		return fclose($this->phandler);
+		if(is_resource($this->writehandler)){
+			fclose($this->writehandler);
+		}
+		if(is_resource($this->phandler)){
+			fclose($this->phandler);
+		}
+		return true;
 	}
 
 	public function delete()
@@ -96,7 +104,8 @@ class pipe
 
 	public function __destruct()
 	{
-		return unlink($this->path);
+		$this->close();
+		//return unlink($this->path);
 	}
 
 }

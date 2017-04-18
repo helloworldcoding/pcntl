@@ -4,12 +4,13 @@ require_once './pipeClass.php';
 class pipMultiCurl
 {
 	protected $url;
-	protected $pipe;
+	protected $pipeName;
 	protected $child=[];
+	protected $result=[]; // 计算的结果
 
 	public function __construct($pipeName='multi-read', $url='')
 	{
-		$this->pipe = new pipe($pipeName,'./');
+		$this->pipeName = $pipeName;
 		$this->url  = $url;
 	}
 
@@ -20,50 +21,52 @@ class pipMultiCurl
 
 	public function getTitle()
 	{
-		$pipe = $this->pipe;
 		$url  = $this->url;
 		foreach($url as $k => $item) {
 			$pid = pcntl_fork();
 			if ($pid ==  0) {
+				$pipe = new pipe($this->pipeName,'./');
 				$id = getmypid();
 				$pipe->writeOpen();
-				$pipe->write('1pid:'.$id.PHP_EOL);
+				$pipe->write($k.' pid:'.$id.PHP_EOL);
 				$pipe->close();
-				$pipe->writeOpen();
-				$pipe->write('2pid:'.$id.PHP_EOL);
-				$pipe->close();
-				echo $id.' finished'.PHP_EOL;
 				exit(0);
 			} else if ($pid > 0) {
 				$this->child[] = $pid;
 			}
 		}
-		$this->getResult();
+		return $this->getResult();
 	}
 
 	public function getResult()
 	{
 		$child = $this->child;
-		$pipe  = $this->pipe;
+		$pipe = new pipe($this->pipeName,'./');
+		$pipe->open();
+		echo 'get all begin'.PHP_EOL;
 		while(count($child)) {
-			//echo 'count '.count($child).PHP_EOL;
 			foreach($child as $k => $pid){
 				$res = pcntl_waitpid($pid,$status,WNOHANG);
-				var_dump($res);
 				if ( -1 == $res || $res > 0 ) {
 					unset($child[$k]);
 				}
 			}
+			$data = $pipe->readOne();
+			if ($data) {
+				$this->result[] = $data;
+			}
 		}
-		echo 'get all begin'.PHP_EOL;
-		$data = $pipe->open()->readAll();
-		var_dump($data);
+		$pipe->close();
 		echo 'get all end'.PHP_EOL;
 		$pipe->delete();
+		return $this->result;
 	}
+
 }
 
 $obj = new pipMultiCurl();
-$obj->setUrl([1]);
-$obj->getTitle();
+$obj->setUrl([1,2,3]);
+$res = $obj->getTitle();
+print_r($res);
+
 
