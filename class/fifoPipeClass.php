@@ -26,18 +26,20 @@ class fifoPipeClass
 	/**
 	 * 创建管道
 	 */
-	public function __construct($path = '/tmp/weicool.pipe', $cover = false, $mode = 0666)
+	public function __construct($path = './weicool.pipe', $cover = false, $mode = 0666)
 	{
 		if (file_exists($path)) {
 			if ($cover) {
 				unlink($path);
 			} else {
 				$this->path = $path;
+				return $this;
 			}
 		}
 
 		if (posix_mkfifo($path,$mode)) {
 			$this->path = $path;
+			return $this;
 		} else {
 			$this->throwException('create pipe failed');
 		}
@@ -124,7 +126,7 @@ class fifoPipeClass
 	/**
 	 * 读取一行，或给定的长度
 	 */
-	public function readOne($byte = 1024);
+	public function readOne($byte = 1024)
 	{
 		$data = fread($this->handler,$byte);
 		return $data;
