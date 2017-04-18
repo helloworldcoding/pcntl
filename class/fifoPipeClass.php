@@ -87,7 +87,7 @@ class fifoPipeClass
 	 *
 	 * @param   string   $mode  打开类型
 	 */
-	public function open($mode = 'r')
+	public function pipeOpen($mode = 'r')
 	{
 		$handler = fopen($this->path, $mode);
 		if (!is_resource($handler)) {
@@ -108,7 +108,7 @@ class fifoPipeClass
 	 */
 	public function readOpen()
 	{
-		return $this->open('r');
+		return $this->pipeOpen('r');
 	}
 
 	/**
@@ -118,18 +118,84 @@ class fifoPipeClass
 	 */
 	public function writeOpen()
 	{
-		return $this->open('w');
+		return $this->pipeOpen('w');
 	}
 
+	/**
+	 * 读取一行，或给定的长度
+	 */
 	public function readOne($byte = 1024);
-	public function readAll();
-	public function write($data);
-	public function close();
-	public function remove();
+	{
+		$data = fread($this->handler,$byte);
+		return $data;
+	}
 
-	public function pipeGetContents();
-	public function pipePutContents($data);
+	/**
+	 * 读取所有的内容
+	 */
+	public function readAll()
+	{
+		$hd = $this->handler;
+		$data = '';
+		while (!feof($hd)) {
+			$data .= fread($hd,1024);
+		}
+		return $data;
+	}
 
+	/**
+	 * 写入数据
+	 */
+	public function write($data)
+	{
+		$hd = $this->handler;
+		try {
+			fwrite($hd,$data);
+		} catch(\Exception $e) {
+			$this->throwException($e->getMessage());
+		}
+		return $this;
+	}
 
+	/**
+	 * 关闭管道
+	 */
+	public function close()
+	{
+		return fclose($this->handler);
+	}
 
+	/**
+	 * 删除管道
+	 */
+	public function remove()
+	{
+		return unlink($this->path);
+	}
+
+	/**
+	 * 一次性获取管道中所有的数据
+	 *
+	 */
+	public function pipeGetContents()
+	{
+		$data = '';
+		$this->readOpen();
+		$handler = $this->handler;
+		while( !feof($handler)) {
+			$data .= fread($handler,1024);
+		}
+		$this->close();
+		return $data;
+	}
+
+	/**
+	 * 一次性写入数据到管道中
+	 *
+	 * @param   string   $data   输入数据
+	 */
+	public function pipePutContents($data)
+	{
+		return $this->writeOpen()->write($data)->close();
+	}
 }
