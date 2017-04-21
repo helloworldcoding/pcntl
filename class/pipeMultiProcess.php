@@ -50,7 +50,7 @@ class pipeMultiProcess
 		$child = $this->child;
 		$pipe  = new fifoPipeClass();
 		$pipe->readOpen();
-		echo 'get all begin'.PHP_EOL;
+		//echo 'get all begin'.PHP_EOL;
 		while(count($child)) {
 			foreach($child as $k => $pid){
 				$res = pcntl_waitpid($pid,$status,WNOHANG);
@@ -64,7 +64,7 @@ class pipeMultiProcess
 			}
 		}
 		$pipe->close();
-		echo 'get all end'.PHP_EOL;
+		//echo 'get all end'.PHP_EOL;
 		$pipe->remove();
 		return $this;
 	}
@@ -80,7 +80,9 @@ class pipeMultiProcess
 }
 
 $obj = new pipeMultiProcess();
-$obj->setProcess(['name'=>1,'age'=>2,'sex'=>3]);
+$arr = range(10,100);
+$obj->setProcess($arr);
+//$obj->setProcess(['name'=>1,'age'=>2,'sex'=>3,'height'=>'12323','hah'=>'ahsdfasfa']);
 $res = $obj->forkProcess()->waiteProcess()->getResult();
 print_r($res);
 

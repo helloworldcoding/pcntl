@@ -61,7 +61,7 @@ class fifoPipeClass
 	 */
 	public function setBlock($block = false)
 	{
-		$this->$block = $block;
+		$this->block = $block;
 	}
 
 	/**
