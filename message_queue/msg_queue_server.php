@@ -25,8 +25,14 @@ function response($message, $msgQueue)
     $path = empty($message['path']) ? $defaultPath : $message['path'];
     $content = '';
     if ( file_exists($path) ) {
-        $content = file_get_contents($path);
+        //$content = file_get_contents($path);
+        $fh = fopen($path,'r');
+        while (!feof($fh)) {
+            $content = fread($fh,1024);
+            if ($content) {
+                msg_send($msgQueue,$pid,$content);
+            }
+        }
     }
-    msg_send($msgQueue,$pid,$content);
 
 }
