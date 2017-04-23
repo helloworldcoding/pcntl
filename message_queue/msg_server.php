@@ -7,7 +7,7 @@ $queue    = msg_get_queue($queueKey);
 $child = [];
 
 while(1) {
-	msg_receive($queue,1,$msgtype,1024,$message);
+	msg_receive($queue,1,$msgtype,1024,$message,true,MSG_IPC_NOWAIT);
 	if (!empty($message['key'])) {
 		$clientKey = $message['key'];
 		$content   = empty($message['content']) ? '****' :$message['content'];
@@ -16,6 +16,7 @@ while(1) {
 			$content = 'data from server '.$content;
 			$clientQueue = msg_get_queue($clientKey);
 			msg_send($clientQueue,1,$content);
+            exit(0);
 		} else if ($pid) {
 			$child[] = $pid;
 		}else {
